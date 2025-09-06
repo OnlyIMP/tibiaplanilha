@@ -287,9 +287,9 @@ export default function ImbuementCalculatorV4({ onCostUpdate, playerId = 'genera
   };
 
   // Função para encontrar a melhor opção
-  const findBestOption = (imbuement: ImbuementType, maxTokens: number): GoldTokenOption | 'all-items' => {
-    const allItemsCost = calculateItemsCost(imbuement.items);
-    const options = calculateGoldTokenOptions(imbuement.items, maxTokens);
+  const findBestOption = (items: ImbuementItem[], maxTokens: number): GoldTokenOption | 'all-items' => {
+    const allItemsCost = calculateItemsCost(items);
+    const options = calculateGoldTokenOptions(items, maxTokens);
     
     if (options.length === 0) return 'all-items';
     
@@ -316,7 +316,7 @@ export default function ImbuementCalculatorV4({ onCostUpdate, playerId = 'genera
     if (!savedImbuements) {
       // Life Leech (6 tokens max)
       const lifeLeechOptions = calculateGoldTokenOptions(lifeLeech.items, 6);
-      const lifeLeechBest = findBestOption(lifeLeech, 6);
+      const lifeLeechBest = findBestOption(lifeLeech.items, 6);
       setLifeLeech(prev => ({
         ...prev,
         goldTokenOptions: lifeLeechOptions,
@@ -326,7 +326,7 @@ export default function ImbuementCalculatorV4({ onCostUpdate, playerId = 'genera
       
       // Mana Leech (2 tokens max)
       const manaLeechOptions = calculateGoldTokenOptions(manaLeech.items, 2);
-      const manaLeechBest = findBestOption(manaLeech, 2);
+      const manaLeechBest = findBestOption(manaLeech.items, 2);
       setManaLeech(prev => ({
         ...prev,
         goldTokenOptions: manaLeechOptions,
@@ -336,7 +336,7 @@ export default function ImbuementCalculatorV4({ onCostUpdate, playerId = 'genera
       
       // Critical (4 tokens max)
       const criticalOptions = calculateGoldTokenOptions(critical.items, 4);
-      const criticalBest = findBestOption(critical, 4);
+      const criticalBest = findBestOption(critical.items, 4);
       setCritical(prev => ({
         ...prev,
         goldTokenOptions: criticalOptions,
@@ -344,23 +344,29 @@ export default function ImbuementCalculatorV4({ onCostUpdate, playerId = 'genera
         goldTokensUsed: criticalBest === 'all-items' ? 0 : criticalBest.tokens
       }));
     } else {
-      // Se houver dados salvos, apenas recalcular as opções mas manter o goldTokensUsed salvo
+      // Se houver dados salvos, recalcular as opções e melhor opção mas manter o goldTokensUsed salvo
       const lifeLeechOptions = calculateGoldTokenOptions(lifeLeech.items, 6);
+      const lifeLeechBest = findBestOption(lifeLeech.items, 6);
       setLifeLeech(prev => ({
         ...prev,
         goldTokenOptions: lifeLeechOptions,
+        bestOption: lifeLeechBest,
       }));
       
       const manaLeechOptions = calculateGoldTokenOptions(manaLeech.items, 2);
+      const manaLeechBest = findBestOption(manaLeech.items, 2);
       setManaLeech(prev => ({
         ...prev,
         goldTokenOptions: manaLeechOptions,
+        bestOption: manaLeechBest,
       }));
       
       const criticalOptions = calculateGoldTokenOptions(critical.items, 4);
+      const criticalBest = findBestOption(critical.items, 4);
       setCritical(prev => ({
         ...prev,
         goldTokenOptions: criticalOptions,
+        bestOption: criticalBest,
       }));
     }
   }, [goldTokenPrice, savedImbuements]);
@@ -432,7 +438,7 @@ export default function ImbuementCalculatorV4({ onCostUpdate, playerId = 'genera
       
       // Recalcular opções mas manter a escolha atual do usuário
       const newOptions = calculateGoldTokenOptions(newItems, maxTokens);
-      const newBest = findBestOption({ ...prev, items: newItems }, maxTokens);
+      const newBest = findBestOption(newItems, maxTokens);
       
       return {
         ...prev,

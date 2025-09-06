@@ -3,7 +3,18 @@
     "allow": [
       "Bash(dir:*)",
       "Bash(npm install:*)",
-      "Bash(git init:*)"
+      "Bash(git init:*)",
+      "Bash(git commit:*)",
+      "Bash(git branch:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Read(/D:\\Sites trafego\\site juan\\app\\types/**)",
+      "Read(/D:\\Sites trafego\\site juan\\app/**)",
+      "Read(/D:\\Sites trafego\\site juan\\app\\components/**)",
+      "Read(/D:\\Sites trafego\\site juan\\app\\hooks/**)",
+      "Bash(npm run dev:*)",
+      "Bash(taskkill:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []
