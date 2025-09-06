@@ -8,9 +8,10 @@ interface FarmFormProps {
   playerName: string;
   config: ConfigSettings;
   onSubmit: (entry: Omit<FarmEntry, 'id' | 'date'>) => void;
+  imbuementCostPerHour?: number;
 }
 
-const FarmForm: React.FC<FarmFormProps> = ({ playerId, playerName, config, onSubmit }) => {
+const FarmForm: React.FC<FarmFormProps> = ({ playerId, playerName, config, onSubmit, imbuementCostPerHour = 0 }) => {
   const [loot, setLoot] = useState('');
   const [hours, setHours] = useState('2');
 
@@ -21,7 +22,9 @@ const FarmForm: React.FC<FarmFormProps> = ({ playerId, playerName, config, onSub
 
     const lootGp = parseGold(loot);
     const hoursNum = parseFloat(hours);
-    const tcQuantity = lootGp / config.tcValue;
+    const totalImbuementCost = imbuementCostPerHour * hoursNum;
+    const netLoot = lootGp - totalImbuementCost;
+    const tcQuantity = netLoot / config.tcValue;
     const reaisValue = (tcQuantity / config.tcAmount) * config.tcPriceReais;
     const reaisPerHour = reaisValue / hoursNum;
 
@@ -29,13 +32,14 @@ const FarmForm: React.FC<FarmFormProps> = ({ playerId, playerName, config, onSub
       playerId,
       playerName,
       loot: lootGp,
-      waste: 0, // Sem waste
-      balance: lootGp,
+      waste: totalImbuementCost,
+      balance: netLoot,
       tcValue: config.tcValue,
       tcQuantity,
       reaisValue,
       hours: hoursNum,
-      reaisPerHour
+      reaisPerHour,
+      imbuementCostPerHour
     });
 
     setLoot('');
@@ -45,7 +49,9 @@ const FarmForm: React.FC<FarmFormProps> = ({ playerId, playerName, config, onSub
   // Calculate preview values
   const lootGp = loot ? parseGold(loot) : 0;
   const hoursNum = hours ? parseFloat(hours) : 2;
-  const tcQuantity = lootGp / config.tcValue;
+  const totalImbuementCost = imbuementCostPerHour * hoursNum;
+  const netLoot = lootGp - totalImbuementCost;
+  const tcQuantity = netLoot / config.tcValue;
   const reaisValue = (tcQuantity / config.tcAmount) * config.tcPriceReais;
   const reaisPerHour = hoursNum > 0 ? reaisValue / hoursNum : 0;
 
@@ -92,9 +98,23 @@ const FarmForm: React.FC<FarmFormProps> = ({ playerId, playerName, config, onSub
         <div className="bg-zinc-900 rounded-md p-4 border border-zinc-800">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
-              <p className="text-xs text-zinc-500 mb-1">Farm</p>
+              <p className="text-xs text-zinc-500 mb-1">Farm Bruto</p>
               <p className="text-sm font-medium text-white">
                 {formatGold(lootGp)}
+              </p>
+            </div>
+            {imbuementCostPerHour > 0 && (
+              <div>
+                <p className="text-xs text-zinc-500 mb-1">Custo Imbuement</p>
+                <p className="text-sm font-medium text-red-400">
+                  -{formatGold(totalImbuementCost)}
+                </p>
+              </div>
+            )}
+            <div>
+              <p className="text-xs text-zinc-500 mb-1">Farm Líquido</p>
+              <p className="text-sm font-medium text-yellow-400">
+                {formatGold(netLoot)}
               </p>
             </div>
             <div>

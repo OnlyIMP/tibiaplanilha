@@ -1,21 +1,35 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Coins } from 'lucide-react';
 import ConfigPanel from './components/ConfigPanel';
 import FarmForm from './components/FarmForm';
 import FarmHistory from './components/FarmHistory';
+import FarmHistoryWithPagination from './components/FarmHistoryWithPagination';
 import PlayerStats from './components/PlayerStats';
 import EditFarmModal from './components/EditFarmModal';
-import { useConfig, useFarmEntries } from './hooks/useSupabase';
+import ImbuementCalculatorV4 from './components/ImbuementCalculatorV4';
+import { useConfig, useFarmEntries, useImbuements } from './hooks/useSupabase';
 import { FarmEntry } from './types/farm';
 
 export default function Home() {
   const { config, updateConfig, loading: configLoading } = useConfig();
   const { entries: farmEntries, addEntry, updateEntry, deleteEntry, updateAllTcValues, loading: entriesLoading } = useFarmEntries();
-  const [activeTab, setActiveTab] = useState<'imp' | 'juan' | 'general' | 'stats'>('imp');
+  const [activeTab, setActiveTab] = useState<'imp' | 'juan' | 'general' | 'stats' | 'imbuements'>('imp');
+  const [imbuementCostPerHour, setImbuementCostPerHour] = useState(0);
   const [editingEntry, setEditingEntry] = useState<FarmEntry | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  
+  // Buscar imbuements salvos do banco para calcular custo
+  const { imbuements: savedImbuements } = useImbuements('general');
+  
+  // Calcular custo de imbuements quando carregar dados salvos
+  useEffect(() => {
+    if (savedImbuements && savedImbuements.costPerHour) {
+      console.log('Carregando custo de imbuements salvo:', savedImbuements.costPerHour);
+      setImbuementCostPerHour(savedImbuements.costPerHour);
+    }
+  }, [savedImbuements]);
 
   const handleConfigUpdate = (newConfig: any) => {
     updateConfig(newConfig);
@@ -115,6 +129,16 @@ export default function Home() {
             >
               Estatísticas
             </button>
+            <button
+              onClick={() => setActiveTab('imbuements')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                activeTab === 'imbuements'
+                  ? 'bg-zinc-800 text-white'
+                  : 'text-zinc-500 hover:text-zinc-300'
+              }`}
+            >
+              Imbuements
+            </button>
           </div>
         </div>
 
@@ -130,6 +154,21 @@ export default function Home() {
 
             return (
               <div className="space-y-6">
+                {/* Mostrar custo de imbuements se houver */}
+                {imbuementCostPerHour > 0 && (
+                  <div className="bg-gradient-to-r from-yellow-950/30 to-orange-950/30 rounded-lg p-4 border border-yellow-800/50">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-yellow-400 text-sm font-medium">⚠️ Custo de Imbuements Ativo</span>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-white font-bold">{imbuementCostPerHour.toLocaleString('pt-BR')} gold/hora</p>
+                        <p className="text-xs text-zinc-400">Será descontado do farm líquido</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
                 <div className="bg-zinc-950 rounded-lg p-6 border border-zinc-900">
                   <div className="mb-6">
                     <h2 className="text-lg font-medium text-white">Farm do Imp</h2>
@@ -140,6 +179,7 @@ export default function Home() {
                     playerName="Imp"
                     config={config}
                     onSubmit={handleFarmSubmit}
+                    imbuementCostPerHour={imbuementCostPerHour}
                   />
                 </div>
                 
@@ -148,12 +188,13 @@ export default function Home() {
                   <div className="mb-4">
                     <h3 className="text-md font-medium text-white">Últimos farms</h3>
                   </div>
-                  <FarmHistory 
-                    entries={impEntries.slice(0, 5)}
+                  <FarmHistoryWithPagination 
+                    entries={impEntries}
                     config={config}
                     onDeleteEntry={handleDeleteEntry}
                     onEditEntry={handleEditEntry}
                     playerFilter="player1"
+                    itemsPerPage={10}
                   />
                 </div>
 
@@ -205,6 +246,21 @@ export default function Home() {
 
             return (
               <div className="space-y-6">
+                {/* Mostrar custo de imbuements se houver */}
+                {imbuementCostPerHour > 0 && (
+                  <div className="bg-gradient-to-r from-yellow-950/30 to-orange-950/30 rounded-lg p-4 border border-yellow-800/50">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-yellow-400 text-sm font-medium">⚠️ Custo de Imbuements Ativo</span>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-white font-bold">{imbuementCostPerHour.toLocaleString('pt-BR')} gold/hora</p>
+                        <p className="text-xs text-zinc-400">Será descontado do farm líquido</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
                 <div className="bg-zinc-950 rounded-lg p-6 border border-zinc-900">
                   <div className="mb-6">
                     <h2 className="text-lg font-medium text-white">Farm do Juan</h2>
@@ -215,6 +271,7 @@ export default function Home() {
                     playerName="Juan"
                     config={config}
                     onSubmit={handleFarmSubmit}
+                    imbuementCostPerHour={imbuementCostPerHour}
                   />
                 </div>
                 
@@ -223,12 +280,13 @@ export default function Home() {
                   <div className="mb-4">
                     <h3 className="text-md font-medium text-white">Últimos farms</h3>
                   </div>
-                  <FarmHistory 
-                    entries={juanEntries.slice(0, 5)}
+                  <FarmHistoryWithPagination 
+                    entries={juanEntries}
                     config={config}
                     onDeleteEntry={handleDeleteEntry}
                     onEditEntry={handleEditEntry}
                     playerFilter="player2"
+                    itemsPerPage={10}
                   />
                 </div>
 
@@ -276,11 +334,12 @@ export default function Home() {
                 <h2 className="text-lg font-medium text-white">Histórico Geral</h2>
                 <p className="text-sm text-zinc-500">Todos os farms registrados</p>
               </div>
-              <FarmHistory 
+              <FarmHistoryWithPagination 
                 entries={farmEntries}
                 config={config}
                 onDeleteEntry={handleDeleteEntry}
                 onEditEntry={handleEditEntry}
+                itemsPerPage={15}
               />
             </div>
           )}
@@ -295,6 +354,41 @@ export default function Home() {
                 entries={farmEntries}
                 config={config}
               />
+            </div>
+          )}
+
+          {activeTab === 'imbuements' && (
+            <div className="space-y-6">
+              <ImbuementCalculatorV4 
+                onCostUpdate={setImbuementCostPerHour}
+                playerId="general"
+              />
+              
+              {imbuementCostPerHour > 0 && (
+                <div className="bg-gradient-to-br from-purple-950/30 via-zinc-900 to-zinc-950 rounded-xl p-6 border border-purple-800/30">
+                  <h3 className="text-lg font-bold text-purple-400 mb-4">Impacto nos Farms</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-zinc-900/50 backdrop-blur rounded-lg p-4 border border-zinc-800/50">
+                      <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2">Custo de Imbuement por Hora</p>
+                      <p className="text-2xl font-bold text-yellow-400">
+                        {imbuementCostPerHour.toLocaleString('pt-BR')} <span className="text-sm font-normal text-yellow-400/70">gold/h</span>
+                      </p>
+                    </div>
+                    <div className="bg-zinc-900/50 backdrop-blur rounded-lg p-4 border border-zinc-800/50">
+                      <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2">Considerando valor do TC</p>
+                      <p className="text-2xl font-bold text-green-400">
+                        R$ {((imbuementCostPerHour / config.tcValue) * (config.tcPriceReais / config.tcAmount)).toFixed(2)}
+                        <span className="text-sm font-normal text-green-400/70">/h</span>
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-4 p-3 bg-zinc-900/30 rounded-lg border border-zinc-800/50">
+                    <p className="text-sm text-zinc-400">
+                      💡 Este custo deve ser subtraído do lucro por hora para calcular o lucro real do farm.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
