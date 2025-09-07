@@ -6,14 +6,42 @@
 2. Vá para SQL Editor
 3. Execute os seguintes comandos SQL em ordem:
 
-### 1. Adicionar coluna de custo de imbuement nos farms
+### 1. PRIMEIRO - Verificar as colunas existentes
+```sql
+-- Execute este comando para ver quais colunas existem na sua tabela
+SELECT 
+    column_name,
+    data_type
+FROM 
+    information_schema.columns 
+WHERE 
+    table_name = 'farm_entries'
+ORDER BY 
+    ordinal_position;
+```
+
+### 2. Adicionar colunas faltantes (se necessário)
+```sql
+-- Se as colunas não existirem, crie-as primeiro:
+ALTER TABLE farm_entries 
+ADD COLUMN IF NOT EXISTS loot NUMERIC DEFAULT 0,
+ADD COLUMN IF NOT EXISTS waste NUMERIC DEFAULT 0,
+ADD COLUMN IF NOT EXISTS balance NUMERIC DEFAULT 0,
+ADD COLUMN IF NOT EXISTS tc_value NUMERIC DEFAULT 0,
+ADD COLUMN IF NOT EXISTS tc_quantity NUMERIC DEFAULT 0,
+ADD COLUMN IF NOT EXISTS reais_value NUMERIC DEFAULT 0,
+ADD COLUMN IF NOT EXISTS hours NUMERIC DEFAULT 0,
+ADD COLUMN IF NOT EXISTS reais_per_hour NUMERIC DEFAULT 0;
+```
+
+### 3. Adicionar coluna de custo de imbuement nos farms
 ```sql
 -- Adicionar coluna para armazenar o custo de imbuement por hora nos farms
 ALTER TABLE farm_entries 
 ADD COLUMN IF NOT EXISTS imbuement_cost_per_hour NUMERIC DEFAULT 0;
 ```
 
-### 2. Adicionar colunas de preços dos itens de imbuement
+### 4. Adicionar colunas de preços dos itens de imbuement
 
 ```sql
 -- Adicionar campos para armazenar os preços dos itens de imbuement
