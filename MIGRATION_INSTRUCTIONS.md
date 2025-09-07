@@ -1,10 +1,19 @@
 # Instruções para aplicar a migração do banco de dados
 
-## IMPORTANTE: Execute este SQL no Supabase para adicionar os campos de preços
+## IMPORTANTE: Execute TODOS estes SQLs no Supabase
 
 1. Acesse o Supabase Dashboard
 2. Vá para SQL Editor
-3. Cole e execute o seguinte SQL:
+3. Execute os seguintes comandos SQL em ordem:
+
+### 1. Adicionar coluna de custo de imbuement nos farms
+```sql
+-- Adicionar coluna para armazenar o custo de imbuement por hora nos farms
+ALTER TABLE farm_entries 
+ADD COLUMN IF NOT EXISTS imbuement_cost_per_hour NUMERIC DEFAULT 0;
+```
+
+### 2. Adicionar colunas de preços dos itens de imbuement
 
 ```sql
 -- Adicionar campos para armazenar os preços dos itens de imbuement
